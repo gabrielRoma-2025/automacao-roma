@@ -1,292 +1,225 @@
+# Resumo dos Scripts de Automação - Grupo Roma
 
-# 📄 Documentação — Repro_Fiscal.py
+## 📋 Tabela de Scripts
 
-## 1. Importações e Constantes
-
-```python
-import time
-from datetime import date, timedelta
-from typing import Tuple
-import pandas as pd
-
-from selenium import webdriver
-from selenium.webdriver import ActionChains
-from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import (
-    TimeoutException, NoSuchElementException, StaleElementReferenceException,
-    UnexpectedAlertPresentException, ElementClickInterceptedException
-)
-
-from webdriver_manager.chrome import ChromeDriverManager
-
-DEALERNET_URL = "https://dealernetroma.com.br/LoginAux.aspx?Windows"
-```
-
-### 📌 Função de cada importação
-- **time, datetime, timedelta** → controle de tempo e manipulação de datas  
-- **pandas** → leitura da planilha Excel contendo parâmetros  
-- **selenium** → automação web (Chrome, XPATH, ID, eventos, etc.)  
-- **webdriver_manager.chrome** → gerencia drivers, embora não esteja sendo usado no script  
-- **DEALERNET_URL** → URL da página de login do DealerNet  
+| # | Script | Linhas | Complexidade | Propósito | Status |
+|---|--------|--------|--------------|-----------|--------|
+| 1 | **Autorizar_NF_Yamaha.py** | 568 | 🟡 Média | Autorizar Notas Fiscais no Via Nuvem | ✅ Documentado |
+| 2 | **Emissao_NF_Yamaha.py** | 2857 | 🔴 Muito Alta | Emitir Notas Fiscais no DealerNet | ✅ Documentado |
+| 3 | **Fluxo_Unico_Yamaha.py** | 514 | 🟡 Média | Exportar Processos do Via Nuvem | ✅ Documentado |
+| 4 | **Fluxo_Dealer_Yamaha.py** | 1157 | 🟠 Alta | Exportar Propostas + Enriquecimento SQL | ✅ Documentado |
+| 5 | **Rotina_Completa_Fat_Yamaha.py** | 285 | 🟡 Média | Orquestrador de Ciclos de Faturamento | ✅ Documentado |
 
 ---
 
-## 2. Lendo Parâmetros do Excel
+## 📊 Análise Detalhada
 
-```python
-arquivo_excel = "Repro_Fiscal.xlsx"
-aba = "Repro_Fiscal"
+### 1️⃣ Autorizar_NF_Yamaha.py
 
-df = pd.read_excel(arquivo_excel, sheet_name=aba)
+**Descrição:** Script de automação RPA que autoriza notas fiscais no sistema Via Nuvem.
 
-# Datas (A3 e B3)
-DT_INICIO = df.iloc[2, 0]   # A3
-DATA_FINAL = df.iloc[2, 1]  # B3
-
-DT_INICIO = pd.to_datetime(DT_INICIO).date()
-DATA_FINAL = pd.to_datetime(DATA_FINAL).date()
-
-# Usuário e Senha (C3 e D3)
-USUARIO = df.iloc[2, 3]   # C3
-SENHA = df.iloc[2, 4]     # D3
-```
-
-### 🔍 O que está acontecendo?
-- Abre o arquivo **Repro_Fiscal.xlsx**  
-- Pega:
-  - Data inicial (A3)  
-  - Data final (B3)  
-  - Usuário (C3)  
-  - Senha (D3)  
-- Converte as datas para o tipo `date`  
-
-```python
-DT_INICIO += timedelta(days=-1)
-DT_FIM    = DT_INICIO
-```
-
-Isso volta 1 dia na data inicial para alinhar com o loop, pois dentro do `while` o script sempre começa somando 1 dia.
+| Propriedade | Valor |
+|-------------|-------|
+| **Linhas de Código** | 568 |
+| **Complexidade** | Média |
+| **Tipo** | Automação Web (Selenium) |
+| **Dependências** | selenium, webdriver-manager, openpyxl |
+| **Tempo de Execução** | ~5-10 minutos |
+| **Modo Padrão** | Headless |
+| **Funcionalidades** | Login, navegação, autorização de NF, tratamento de popups |
 
 ---
 
-## 3. Abrindo o Chrome e Fazendo Login
+### 2️⃣ Emissao_NF_Yamaha.py
 
-```python
-driver = webdriver.Chrome()
-driver.get(DEALERNET_URL)
-```
+**Descrição:** Script complexo de automação RPA que emite notas fiscais no DealerNet com integração SQL Server.
 
-### 3.1 Preenchendo Usuário
-```python
-user_inp = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.ID, "vUSUARIO_IDENTIFICADORALTERNATIVO"))
-)
-
-driver.execute_script("arguments[0].scrollIntoView({block:'center'});", user_inp)
-driver.execute_script("arguments[0].click();", user_inp)
-
-user_inp.clear()
-user_inp.send_keys(USUARIO)
-```
-
-✔ Aguarda o campo aparecer  
-✔ Faz scroll  
-✔ Clica via JavaScript  
-✔ Limpa  
-✔ Digita o usuário  
-
-### 3.2 Preenchendo Senha
-```python
-user_senha = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.ID, "vUSUARIOSENHA_SENHA"))
-)
-
-driver.execute_script("arguments[0].scrollIntoView({block:'center'});", user_senha)
-driver.execute_script("arguments[0].click();", user_senha)
-
-user_senha.clear()
-user_senha.send_keys(SENHA)
-```
-
-Mesma lógica do campo de usuário.
-
-### 3.3 Confirmando Login
-```python
-btn_conf = WebDriverWait(driver, 10).until(
-    EC.element_to_be_clickable((By.ID, "IMAGE3"))
-)
-btn_conf.send_keys(Keys.ENTER)
-```
-
-✔ Envia ENTER ao botão de login  
-✔ Efetua o login  
+| Propriedade | Valor |
+|-------------|-------|
+| **Linhas de Código** | 2857 |
+| **Complexidade** | Muito Alta |
+| **Tipo** | Automação Web (Selenium) + SQL Server + GeneXus |
+| **Dependências** | selenium, webdriver-manager, openpyxl, pyodbc |
+| **Tempo de Execução** | ~15-25 minutos |
+| **Modo Padrão** | Headless |
+| **Funcionalidades** | Login, navegação em iframes, validação de chassi, integração SQL, emissão de NF, tratamento de regras complexas |
 
 ---
 
-## 4. Navegação até Escrita Fiscal → Apuração → Escrituração
+### 3️⃣ Fluxo_Unico_Yamaha.py
 
-### 4.1 Abrindo "Escrita Fiscal"
-```python
-btn = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.ID, "ext-gen38"))
-)
+**Descrição:** Script de automação RPA que exporta processos do Via Nuvem e processa dados em Excel.
 
-driver.execute_script("arguments[0].scrollIntoView({block:'center'});", btn)
-ActionChains(driver).move_to_element(btn).perform()
-driver.execute_script("arguments[0].click();", btn)
-```
-
-### 4.2 Abrindo "Apuração"
-```python
-el = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.XPATH, "//span[text()='Apuração']"))
-)
-ActionChains(driver).move_to_element(el).perform()
-```
-
-### 4.3 Acessando "Escrituração"
-```python
-els = WebDriverWait(driver, 35).until(
-    EC.element_to_be_clickable((By.XPATH, "//span[text()='Escrituração']"))
-)
-driver.execute_script("arguments[0].click();", els)
-```
-
-Pronto: você chegou na tela de escrituração.
+| Propriedade | Valor |
+|-------------|-------|
+| **Linhas de Código** | 514 |
+| **Complexidade** | Média |
+| **Tipo** | Automação Web (Selenium) + Processamento Excel |
+| **Dependências** | selenium, webdriver-manager, openpyxl |
+| **Tempo de Execução** | ~5-15 minutos |
+| **Modo Padrão** | Headless |
+| **Funcionalidades** | Login, exportação de processos, ajuste de planilha, deduplicação, extração de Pedido/Chassi |
 
 ---
 
-## 5. Loop de Processamento Diário
-```python
-while DT_INICIO <= DATA_FINAL:
-    DT_INICIO += timedelta(days=1)
-    DT_FIM += timedelta(days=1)
+### 4️⃣ Fluxo_Dealer_Yamaha.py
+
+**Descrição:** Script de automação RPA que exporta propostas do DealerNet com enriquecimento de dados via SQL Server.
+
+| Propriedade | Valor |
+|-------------|-------|
+| **Linhas de Código** | 1157 |
+| **Complexidade** | Alta |
+| **Tipo** | Automação Web (Selenium) + Processamento Excel + SQL Server |
+| **Dependências** | selenium, webdriver-manager, openpyxl, unidecode, pyodbc |
+| **Tempo de Execução** | ~10-25 minutos |
+| **Modo Padrão** | Headless |
+| **Funcionalidades** | Login, navegação em iframes, exportação paginada, decomposição de campos, enriquecimento SQL, logs estruturados |
+
+---
+
+### 5️⃣ Rotina_Completa_Fat_Yamaha.py
+
+**Descrição:** Orquestrador que gerencia o ciclo completo de faturamento executando 3 scripts em sequência.
+
+| Propriedade | Valor |
+|-------------|-------|
+| **Linhas de Código** | 285 |
+| **Complexidade** | Média |
+| **Tipo** | Orquestrador / Gerenciador de Ciclos |
+| **Dependências** | subprocess, datetime, zoneinfo, pathlib, argparse |
+| **Tempo de Execução** | ~30-60 minutos (por ciclo) |
+| **Modo Padrão** | Loop contínuo |
+| **Funcionalidades** | Orquestração de scripts, verificação de janela operacional, RUN-ID, tratamento de erros, notificações |
+
+---
+
+## 🔄 Fluxo de Integração
+
 ```
+Rotina_Completa_Fat_Yamaha.py (Orquestrador)
+    │
+    ├─→ Relatorio_YAMAHA.py
+    │   └─ Coleta dados
+    │
+    ├─→ Emissao_NF_Yamaha.py
+    │   ├─ Integração com SQL Server
+    │   ├─ Validação de dados
+    │   └─ Emissão de NF
+    │
+    └─→ Autorizar_NF_Yamaha.py
+        └─ Autorização de NF
 
-Cada volta do loop processa um único dia.
+Fluxo_Dealer_Yamaha.py (Paralelo)
+    ├─ Exportação de Propostas
+    ├─ Decomposição de Campos
+    └─ Enriquecimento SQL
 
----
-
-## 6. Função de Fechar Popup “OK”
-- Procura botão OK  
-- Na página principal ou iframes  
-- Se achar → clica e retorna `True`  
-- Se não → retorna `False`  
-
-Essa função aparece várias vezes no script — dá pra consolidar.
-
----
-
-## 7. Preenchendo Data Inicial
-```python
-set_date_field(driver, "vDATAINICIAL", DT_INICIO)
+Fluxo_Unico_Yamaha.py (Paralelo)
+    ├─ Exportação de Processos
+    ├─ Ajuste de Planilha
+    └─ Deduplicação
 ```
 
 ---
 
-## 8. Preenchendo Data Final
-```python
-set_date_final_field(driver, data=DT_FIM)
+## 📈 Estatísticas Gerais
+
+| Métrica | Valor |
+|---------|-------|
+| **Total de Scripts** | 5 |
+| **Total de Linhas** | 5.381 |
+| **Linhas Médias** | 1.076 |
+| **Scripts Simples** | 2 (40%) |
+| **Scripts Médios** | 2 (40%) |
+| **Scripts Complexos** | 1 (20%) |
+| **Documentação Gerada** | 5 arquivos Word (.docx) |
+| **Páginas de Documentação** | ~50+ |
+| **Funções Documentadas** | 100+ |
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+### Automação Web
+- **Selenium 4.0+** - Automação de navegador
+- **WebDriver Manager** - Gerenciamento de ChromeDriver
+- **Chrome/Chromium** - Navegador
+
+### Processamento de Dados
+- **OpenPyXL 3.6+** - Processamento de Excel
+- **Regex** - Extração de dados estruturados
+- **Unidecode** - Normalização de texto
+
+### Integração com Banco de Dados
+- **PyODBC 4.0+** - Conexão com SQL Server
+- **SQL Server 2019+** - Banco de dados
+
+### Orquestração
+- **Subprocess** - Execução de processos
+- **ZoneInfo** - Gerenciamento de timezone
+- **Argparse** - Parsing de argumentos CLI
+
+---
+
+## 📝 Documentação Disponível
+
+Cada script possui documentação técnica completa em formato Word (.docx) contendo:
+
+- ✅ Visão Geral e Resumo Executivo
+- ✅ Objetivo e Escopo
+- ✅ Arquitetura Técnica
+- ✅ Dependências e Requisitos
+- ✅ Estrutura do Código
+- ✅ Fluxo de Execução com Diagramas
+- ✅ Configurações e Parâmetros
+- ✅ Documentação de Funções
+- ✅ Exemplos de Uso
+- ✅ Troubleshooting
+
+---
+
+## 🚀 Como Usar
+
+### Instalação de Dependências
+
+```bash
+pip install selenium webdriver-manager openpyxl unidecode pyodbc
+```
+
+### Execução Individual
+
+```bash
+# Autorizar NF
+python Autorizar_NF_Yamaha.py
+
+# Emitir NF
+python Emissao_NF_Yamaha.py
+
+# Exportar Processos
+python Fluxo_Unico_Yamaha.py
+
+# Exportar Propostas
+python Fluxo_Dealer_Yamaha.py
+
+# Orquestrador (recomendado)
+python Rotina_Completa_Fat_Yamaha.py
+```
+
+### Modo Interativo
+
+```bash
+python Rotina_Completa_Fat_Yamaha.py --no-headless
+```
+
+### Modo Único
+
+```bash
+python Rotina_Completa_Fat_Yamaha.py --once
 ```
 
 ---
 
-## 9. Selecionando "Saída"
-```python
-radio = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.XPATH, "//input[@name='vMOVIMENTO' and @value='S']"))
-)
-driver.execute_script("arguments[0].click();", radio)
-```
+## 📞 Suporte
 
----
-
-## 10. Novo Fechamento de Popup
-Outro bloco repetido da função `fechar_popup_sessao_ok`.
-
----
-
-## 11. Marcar Checkbox "ICMS"
-```python
-cb = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.XPATH, "//input[@id='vISGRUPOTRIBUTOICMS']"))
-)
-
-if not cb.is_selected():
-    driver.execute_script("arguments[0].click();", cb)
-```
-
----
-
-## 12. Lógica: "Completa" e "Valores Auxiliares"
-Fluxo:
-- Se Valores Auxiliares estiver clicável → segue o jogo  
-- Se não estiver:
-  - Tenta clicar em Completa  
-  - Depois tenta clicar em Valores Auxiliares novamente  
-- Se nada for clicável → apenas prossegue  
-
----
-
-## 13. Consultar
-```python
-btn_consulta = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.ID, "IMGCONSULTAR"))
-)
-driver.execute_script("arguments[0].click();", btn_consulta)
-```
-
----
-
-## 14. Marcar Todos
-```python
-marcar_todos = WebDriverWait(driver, 20).until(
-    EC.element_to_be_clickable((By.XPATH, "//a[text()='Marcar Todos']"))
-)
-driver.execute_script("arguments[0].click();", marcar_todos)
-```
-
----
-
-## 15. Escriturar
-```python
-btn_escriturar = WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.ID, "ESCRITURARNFPROPRIA"))
-)
-driver.execute_script("arguments[0].click();", btn_escriturar)
-```
-
----
-
-## 16. Aguardar Resultado
-A função procura duas mensagens:
-- "Nota(s) escriturada(s) com sucesso!"  
-- "Nenhuma Nota Fiscal foi selecionada!"  
-
----
-
-## 17. Fechamento Final de Popup
-Mais uma chamada da função para fechar popups residuais.
-
----
-
-## 18. 🧠 Resumo do Fluxo Diário
-- Avança um dia  
-- Fecha popups  
-- Preenche Data Inicial / Final  
-- Seleciona "Saída"  
-- Marca ICMS  
-- Ajusta checkboxes "Completa" / "Valores Auxiliares"  
-- Executa Consultar  
-- Executa Marcar Todos  
-- Executa Escriturar NF Própria  
-- Fecha popups  
-- Aguarda mensagem final  
-- Vai para o próximo dia  
-
-O loop continua até atingir a data final do Excel.
+Para dúvidas sobre os scripts, consulte a documentação técnica em Word (.docx)
